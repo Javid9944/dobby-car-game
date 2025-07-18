@@ -12,16 +12,19 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    min-height: 100vh;
     color: white;
     font-family: Arial, sans-serif;
     overflow: hidden;
+    padding: 20px;
+    box-sizing: border-box;
   }
   #container {
     display: flex;
     align-items: flex-start;
     gap: 20px;
     position: relative;
+    max-width: 100%;
   }
   #dobby-container {
     flex-shrink: 0;
@@ -55,9 +58,10 @@
     border-radius: 10px;
     box-shadow: 0 0 15px #000;
     touch-action: none;
+    max-width: 100%;
   }
   #message-box {
-    position: absolute;
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -69,12 +73,14 @@
     text-align: center;
     display: none;
     z-index: 20;
-    max-width: 80vw;
+    max-width: 90vw;
+    width: auto;
   }
   #message-box img {
     width: 120px;
     margin-bottom: 15px;
     border-radius: 10px;
+    max-width: 100%;
   }
   #message-text {
     font-weight: bold;
@@ -115,24 +121,71 @@
     text-decoration: underline;
   }
 
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     #container {
       flex-direction: column;
       align-items: center;
+      width: 100%;
     }
-    #dobby-container, #info-box {
+    #dobby-container {
       width: 120px;
       margin-bottom: 10px;
+    }
+    #info-box {
+      width: 100%;
+      box-sizing: border-box;
     }
     #dobby-container img {
       width: 100px;
     }
     #game {
-      width: 320px !important;
-      height: 480px !important;
+      width: 100% !important;
+      height: auto !important;
+      aspect-ratio: 2/3;
+    }
+    #message-box {
+      padding: 20px;
+      width: 80%;
     }
     #message-box img {
+      width: 80px;
+    }
+  }
+
+  @media (max-height: 700px) {
+    body {
+      justify-content: flex-start;
+      padding-top: 20px;
+    }
+    #container {
+      flex-direction: row;
+    }
+    #game {
+      height: 90vh !important;
+      width: auto !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    #dobby-container {
       width: 100px;
+    }
+    #dobby-container img {
+      width: 80px;
+    }
+    #info-box {
+      font-size: 0.9rem;
+      padding: 8px;
+    }
+    #message-box {
+      padding: 15px;
+    }
+    #message-box img {
+      width: 60px;
+    }
+    #restart-btn {
+      padding: 8px 15px;
+      font-size: 1rem;
     }
   }
 </style>
@@ -530,12 +583,68 @@
     if(e.key === 'ArrowRight' || e.key === 'd') rightPressed = false;
   });
 
+  // Dokunmatik kontroller
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touchX = e.touches[0].clientX;
+    const canvasRect = canvas.getBoundingClientRect();
+    const canvasCenter = canvasRect.left + canvasRect.width / 2;
+    
+    if(touchX < canvasCenter) {
+      leftPressed = true;
+      rightPressed = false;
+    } else {
+      rightPressed = true;
+      leftPressed = false;
+    }
+  });
+
+  canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    leftPressed = false;
+    rightPressed = false;
+  });
+
   // Yeniden başlat
   restartBtn.addEventListener('click', () => {
     resetGame();
   });
 
-  carImg.onload = () => resetGame();
+  // Canvas boyutunu ayarla
+  function resizeCanvas() {
+    const container = document.getElementById('container');
+    const dobbyContainer = document.getElementById('dobby-container');
+    
+    if(window.innerWidth < 768) {
+      // Mobil mod
+      const maxWidth = Math.min(window.innerWidth - 40, 400);
+      const height = maxWidth * 1.5;
+      canvas.width = maxWidth;
+      canvas.height = height;
+    } else {
+      // PC mod
+      if(window.innerHeight < 700) {
+        // Dikey alan kısıtlıysa
+        const maxHeight = window.innerHeight - 40;
+        const width = maxHeight * 0.666;
+        canvas.width = width;
+        canvas.height = maxHeight;
+      } else {
+        // Normal PC görünümü
+        canvas.width = 400;
+        canvas.height = 600;
+      }
+    }
+    
+    // Oyunu yeniden başlat
+    if(carImg.complete) resetGame();
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  carImg.onload = () => {
+    resizeCanvas();
+    resetGame();
+  };
 
 </script>
 </body>
