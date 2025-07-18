@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dobby Car</title>
+  <style>
+    body {
+      margin: 0;
+      background: #222;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #container {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    #dobby-container {
+      width: 150px;
+      text-align: center;
+      user-select: none;
+    }
+
+    #dobby-container img {
+      width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #000;
+    }
+
+    #score-box {
+      margin-top: 10px;
+      background: #444;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 16px;
+      user-select: none;
+    }
+
+    #game {
+      background: #555;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #000;
+      touch-action: none;
+      max-width: 400px;
+      width: 90vw;
+      height: 600px;
+    }
+
+    #center-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 10;
+      background: rgba(0,0,0,0.85);
+      padding: 20px;
+      border-radius: 12px;
+      display: none;
+      width: 280px;
+      user-select: none;
+    }
+
+    #center-overlay img {
+      width: 150px;
+      margin-bottom: 15px;
+    }
+
+    #restart-btn {
+      padding: 12px 24px;
+      font-size: 18px;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    #restart-btn:hover {
+      background: #0056b3;
+    }
+
+    #footer {
+      margin-top: 15px;
+      font-size: 18px;
+      width: 100%;
+      text-align: center;
+      user-select: none;
+    }
+
+    #footer a {
+      color: #1da1f2;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    @media screen and (max-width: 600px) {
+      #container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #game {
+        height: 400px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="container">
+  <div id="dobby-container">
+    <img src="dobby.png" alt="Dobby" />
+    <div style="margin-top:10px; font-weight:bold;">Dobby Car</div>
+    <div id="score-box">
+      Seviye: <span id="level">1</span><br />
+      Skor: <span id="score">0</span>
+    </div>
+  </div>
+
+  <canvas id="game" width="400" height="600"></canvas>
+
+  <div id="center-overlay">
+    <img id="end-img" src="" alt="Sonuç" />
+    <div id="end-message" style="font-size:24px; margin:10px 0;"></div>
+    <button id="restart-btn">Yeniden Başla</button>
+  </div>
+</div>
+
+<div id="footer">
+  <a href="https://x.com/Cavo994" target="_blank">@Cavo994</a>
+</div>
+
+<script>
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+
+  const roadWidth = 200;
+  const roadX = (canvas.width - roadWidth) / 2;
+
+  // Araba boyutları
+  const carWidth = 20;
+  const carHeight = 40;
+  let carX;
+  const carY = canvas.height - carHeight - 10;
+
+  const obstacleWidth = 40;
+  const obstacleHeight = carHeight / 2;
+
+  const boneWidth = 30;
+  const boneHeight = 30;
+
+  const bonusWidth = 30;
+  const bonusHeight = 30;
+
+  let leftPressed = false;
+  let rightPressed = false;
+  let gameOver = false;
+
+  let level = 1;
+  let score = 0;
+  let speed = 3;
+
+  let obstacles = [];
+  let bones = [];
+  let bonuses = [];
+
+  const carImg = new Image();
+  carImg.src = 'bmw.png';
+
+  const boneImg = new Image();
+  boneImg.src = 'bone.png';
+
+  const bonusImg = new Image();
+  bonusImg.src = 'senti.png';
+
+  const winImg = 'win.png';
+  const loseImg = 'lost.png';
+
+  const overlay = document.getElementById('center-overlay');
+  const endMessage = document.getElementById('end-message');
+  const endImg = document.getElementById('end-img');
+  const restartBtn = document.getElementById('restart-btn');
+  const levelDisplay = document.getElementById('level');
+  const scoreDisplay = document.getElementById('score');
+
+  function getObstacleGap() {
+    return carHeight * 2;
+  }
+
+  function obstacleProbability() {
+    if(level < 7) return 0.008 + level * 0.0005;
+    else return 0.02 + level * 0.001;
+  }
+
+  function canPlaceObstacle(newY) {
+    return obstacles.every(o => Math.abs(o.y - newY) >= getObstacleGap());
+  }
+
+  function updateObstacles() {
+    obstacles.forEach(o => o.y += speed);
+    obstacles = obstacles.filter(o => o.y < canvas.height);
+
+    if(Math.random() < obstacleProbability()) {
+      let laneWidth = roadWidth / 3;
+      let laneIndexes = [0,1,2];
+      let chosenLanes = [];
+
+      while(chosenLanes.length < 2 && laneIndexes.length) {
+        const idx = Math.floor(Math.random() * laneIndexes.length);
+        chosenLanes.push(laneIndexes[idx]);
+        laneIndexes.splice(idx, 1);
+        if(Math.random() > 0.5) break;
+      }
+
+      let maxObstacleY = obstacles.length ? Math.max(...obstacles.map(o => o.y)) : -1000;
+      let gap = getObstacleGap();
+
+      if(canvas.height - maxObstacleY > gap) {
+        chosenLanes.forEach(lane => {
+          const x = roadX + lane * laneWidth + (laneWidth - obstacleWidth) / 2;
+          if(canPlaceObstacle(-obstacleHeight)) {
+            obstacles.push({x, y: -obstacleHeight});
+          }
+        });
+      }
+    }
+  }
+
+  function updateBones() {
+    bones.forEach(b => b.y += speed);
+    bones = bones.filter(b => b.y < canvas.height);
+
+    if(Math.random() < 0.01) {
+      let laneWidth = roadWidth / 3;
+      let lane = Math.floor(Math.random() * 3);
+      const x = roadX + lane * laneWidth + (laneWidth - boneWidth) / 2;
+
+      if(!obstacles.some(o => Math.abs(o.x - x) < 10 && o.y < 100)) {
+        bones.push({x, y: -boneHeight});
+      }
+    }
+  }
+
+  let lastBonusTime = 0;
+  function updateBonuses() {
+    bonuses.forEach(b => b.y += speed);
+    bonuses = bonuses.filter(b => b.y < canvas.height);
+
+    if(Date.now() - lastBonusTime > 5000) {
+      let laneWidth = roadWidth / 3;
+      let lane = Math.floor(Math.random() * 3);
+      const x = roadX + lane * laneWidth + (laneWidth - bonusWidth) / 2;
+
+      if(!obstacles.some(o => Math.abs(o.x - x) < 10 && o.y < 100) &&
+         !bones.some(b => Math.abs(b.x - x) < 10 && b.y < 100) &&
+         !bonuses.some(b => Math.abs(b.x - x) < 10 && b.y < 100)) {
+        bonuses.push({x, y: -bonusHeight});
+        lastBonusTime = Date.now();
+      }
+    }
+  }
+
+  function drawRoad() {
+    ctx.fillStyle = '#333';
+    ctx.fillRect(roadX, 0, roadWidth, canvas.height);
+
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([20, 20]);
+    for(let y=0; y < canvas.height; y += 40) {
+      ctx.beginPath();
+      ctx.moveTo(canvas.width/2, y);
+      ctx.lineTo(canvas.width/2, y + 20);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+  }
+
+  function drawCar() {
+    ctx.drawImage(carImg, carX, carY, carWidth, carHeight);
+  }
+
+  function drawObstacles() {
+    ctx.fillStyle = 'orange';
+    obstacles.forEach(o => {
+      ctx.fillRect(o.x, o.y, obstacleWidth, obstacleHeight);
+    });
+  }
+
+  function drawBones() {
+    bones.forEach(b => {
+      ctx.drawImage(boneImg, b.x, b.y, boneWidth, boneHeight);
+    });
+  }
+
+  function drawBonuses() {
+    bonuses.forEach(b => {
+      ctx.drawImage(bonusImg, b.x, b.y, bonusWidth, bonusHeight);
+    });
+  }
+
+  function rectsOverlap(a, b) {
+    return !(b.x > a.x + a.width || b.x + b.width < a.x || b.y > a.y + a.height || b.y + b.height < a.y);
+  }
+
+  function checkCollision() {
+    for(let o of obstacles) {
+      if(rectsOverlap({x: carX, y: carY, width: carWidth, height: carHeight}, {...o, width: obstacleWidth, height: obstacleHeight})) {
+        gameOver = true;
+        showEnd(false);
+        return;
+      }
+    }
+
+    for(let i = bones.length - 1; i >= 0; i--) {
+      const b = bones[i];
+      if(rectsOverlap({x: carX, y: carY, width: carWidth, height: carHeight}, {...b, width: boneWidth, height: boneHeight})) {
+        bones.splice(i, 1);
+        score += 1;   // Kemik 1 puan
+        updateScoreAndLevel();
+      }
+    }
+
+    for(let i = bonuses.length -1; i >= 0; i--) {
+      const b = bonuses[i];
+      if(rectsOverlap({x: carX, y: carY, width: carWidth, height: carHeight}, {...b, width: bonusWidth, height: bonusHeight})) {
+        bonuses.splice(i, 1);
+        score += 5;   // Bonus 5 puan
+        updateScoreAndLevel();
+      }
+    }
+  }
+
+  function updateScoreAndLevel() {
+    scoreDisplay.textContent = score;
+    const newLevel = Math.min(Math.floor(score / 10) + 1, 12);
+    if(newLevel > level) {
+      level = newLevel;
+      levelDisplay.textContent = level;
+
+      if(level >= 7 && level <= 12) {
+        speed = 3 + (level - 6); // 7. levelde speed=4, 8=>5, ... 12=>9
+      }
+
+      if(level === 12) {
+        gameOver = true;
+        showEnd(true);
+      }
+    }
+  }
+
+  function showEnd(won) {
+    overlay.style.display = 'block';
+    endMessage.textContent = won ? 'Kazandınız!' : 'Kaybettiniz!';
+    endImg.src = won ? winImg : loseImg;
+  }
+
+  function gameLoop() {
+    if(gameOver) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawRoad();
+    drawCar();
+    drawObstacles();
+    drawBones();
+    drawBonuses();
+
+    updateObstacles();
+    updateBones();
+    updateBonuses();
+
+    checkCollision();
+
+    if(leftPressed && carX > roadX) carX -= 5;
+    if(rightPressed && carX + carWidth < roadX + roadWidth) carX += 5;
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  document.addEventListener('keydown', e => {
+    if(e.code === 'ArrowLeft') leftPressed = true;
+    if(e.code === 'ArrowRight') rightPressed = true;
+    if(e.code === 'Enter' && gameOver) resetGame();
+  });
+
+  document.addEventListener('keyup', e => {
+    if(e.code === 'ArrowLeft') leftPressed = false;
+    if(e.code === 'ArrowRight') rightPressed = false;
+  });
+
+  canvas.addEventListener('touchstart', handleTouch, {passive:true});
+  canvas.addEventListener('touchmove', handleTouch, {passive:true});
+  canvas.addEventListener('touchend', () => {
+    leftPressed = false;
+    rightPressed = false;
+  });
+
+  function handleTouch(e) {
+    const touch = e.touches[0];
+    if(!touch) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    if(x < canvas.width / 2) {
+      leftPressed = true;
+      rightPressed = false;
+    } else {
+      rightPressed = true;
+      leftPressed = false;
+    }
+  }
+
+  function resetGame() {
+    score = 0;
+    level = 1;
+    speed = 3;
+    obstacles = [];
+    bones = [];
+    bonuses = [];
+    gameOver = false;
+    carX = roadX + (roadWidth - carWidth) / 2;
+
+    levelDisplay.textContent = level;
+    scoreDisplay.textContent = score;
+    overlay.style.display = 'none';
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  carImg.onload = () => {
+    resetGame();
+  };
+
+  restartBtn.addEventListener('click', resetGame);
+</script>
+
+</body>
+</html>
