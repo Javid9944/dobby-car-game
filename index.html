@@ -2,26 +2,31 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Dobby Araba Oyunu</title>
 <style>
   body {
     margin: 0;
+    padding: 0;
     background: #222;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
     color: white;
     font-family: Arial, sans-serif;
     overflow-x: hidden;
-    min-height: 100vh;
+    touch-action: manipulation;
   }
-  #header-container {
+  
+  #game-header {
+    width: 100%;
     display: flex;
     justify-content: center;
-    width: 100%;
-    padding: 20px 0;
+    padding: 10px 0;
   }
+  
   #dobby-container {
     background: #333;
     padding: 10px;
@@ -30,36 +35,46 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 150px;
+    max-width: 150px;
   }
+  
   #dobby-container img {
-    width: 120px;
+    width: 100%;
+    max-width: 120px;
     height: auto;
     border-radius: 10px;
     box-shadow: 0 0 10px #555;
   }
+  
   #info-box {
     background: #444;
     border-radius: 8px;
     padding: 10px;
-    margin-top: 12px;
-    width: 140px;
+    margin-top: 10px;
+    width: 100%;
     text-align: center;
     font-weight: bold;
-    user-select: none;
+    font-size: clamp(12px, 3vw, 16px);
   }
-  #game-container {
+  
+  #game-wrapper {
+    width: 100%;
     display: flex;
     justify-content: center;
-    width: 100%;
-    margin-top: 20px;
+    padding: 0 10px;
+    box-sizing: border-box;
   }
+  
   #game {
     background: #555;
     border-radius: 10px;
     box-shadow: 0 0 15px #000;
     touch-action: none;
+    max-width: 100%;
+    max-height: 70vh;
+    aspect-ratio: 2/3;
   }
+  
   #message-box {
     position: fixed;
     top: 50%;
@@ -68,123 +83,58 @@
     background: white;
     color: black;
     border-radius: 12px;
-    padding: 30px 40px;
+    padding: 20px;
     box-shadow: 0 0 20px #000;
     text-align: center;
     display: none;
     z-index: 20;
-    max-width: 90vw;
-    width: auto;
+    width: 90%;
+    max-width: 350px;
   }
+  
   #message-box img {
-    width: 120px;
+    width: 100px;
+    max-width: 100%;
     margin-bottom: 15px;
     border-radius: 10px;
-    max-width: 100%;
   }
+  
   #message-text {
     font-weight: bold;
     margin-bottom: 20px;
-    position: relative;
-    z-index: 10;
+    font-size: clamp(16px, 4vw, 20px);
   }
+  
   #restart-btn {
-    padding: 10px 25px;
-    font-size: 1.2rem;
+    padding: 10px 20px;
+    font-size: clamp(14px, 4vw, 18px);
     border: none;
     border-radius: 8px;
     background: #007bff;
     color: white;
     cursor: pointer;
     box-shadow: 0 0 10px #007bff;
-    z-index: 10;
-    position: relative;
   }
-  #restart-btn:hover {
-    background: #0056b3;
-  }
-  #link-container {
+  
+  #footer {
     margin-top: auto;
-    padding: 20px;
-    color: white;
-    font-size: 0.9rem;
-    user-select: none;
+    padding: 15px;
     text-align: center;
+    font-size: clamp(12px, 3vw, 14px);
   }
-  #link-container a {
+  
+  #footer a {
     color: #1da1f2;
     text-decoration: none;
     font-weight: bold;
   }
-  #link-container a:hover {
-    text-decoration: underline;
-  }
-
-  @media (max-width: 768px) {
-    #dobby-container {
-      width: 120px;
-    }
-    #info-box {
-      width: 100%;
-      box-sizing: border-box;
-    }
-    #dobby-container img {
-      width: 100px;
-    }
-    #game {
-      width: 100% !important;
-      height: auto !important;
-      max-width: 400px;
-      aspect-ratio: 2/3;
-    }
-    #message-box {
-      padding: 20px;
-      width: 80%;
-    }
-    #message-box img {
-      width: 80px;
-    }
-  }
-
-  @media (max-height: 700px) {
-    #header-container {
-      padding: 10px 0;
-    }
-    #game {
-      height: 70vh !important;
-      width: auto !important;
-    }
-  }
-
-  @media (max-width: 480px) {
-    #dobby-container {
-      width: 100px;
-    }
-    #dobby-container img {
-      width: 80px;
-    }
-    #info-box {
-      font-size: 0.9rem;
-      padding: 8px;
-    }
-    #message-box {
-      padding: 15px;
-    }
-    #message-box img {
-      width: 60px;
-    }
-    #restart-btn {
-      padding: 8px 15px;
-      font-size: 1rem;
-    }
-  }
 </style>
 </head>
 <body>
-  <div id="header-container">
+  <div id="game-header">
     <div id="dobby-container">
       <img src="dobby.png" alt="Dobby" />
-      <div style="margin-top:10px; font-weight:bold;">Dobby Car</div>
+      <div style="margin-top:10px; font-weight:bold; font-size: clamp(14px, 4vw, 18px);">Dobby Car</div>
       <div id="info-box">
         <div>Seviye: <span id="level">1</span></div>
         <div>Score: <span id="score">0</span></div>
@@ -192,20 +142,20 @@
     </div>
   </div>
 
-  <div id="game-container">
-    <canvas id="game" width="400" height="600"></canvas>
+  <div id="game-wrapper">
+    <canvas id="game"></canvas>
   </div>
 
   <div id="message-box">
     <img id="message-img" src="" alt="Durum" />
     <div id="message-text"></div>
     <button id="restart-btn">Yeniden Başla</button>
-    <div style="margin-top:10px; font-size:0.85rem; color:#555;">
+    <div style="margin-top:15px; font-size:0.85rem; color:#555;">
       <a href="https://x.com/Cavo994" target="_blank" rel="noopener noreferrer">@Cavo994</a>
     </div>
   </div>
 
-  <div id="link-container">
+  <div id="footer">
     <a href="https://x.com/Cavo994" target="_blank" rel="noopener noreferrer">@Cavo994</a>
   </div>
 
@@ -219,13 +169,23 @@
   const levelText = document.getElementById('level');
   const scoreText = document.getElementById('score');
 
-  const roadWidth = 200;
+  // Oyun boyutlarını ayarla
+  function setupGameSize() {
+    const maxWidth = Math.min(window.innerWidth - 40, 400);
+    const height = maxWidth * 1.5;
+    canvas.width = maxWidth;
+    canvas.height = height;
+  }
+  
+  setupGameSize();
+
+  const roadWidth = canvas.width * 0.5;
   const roadX = (canvas.width - roadWidth) / 2;
   const laneCount = 3;
   const laneWidth = roadWidth / laneCount;
 
-  const carWidth = 30;
-  const carHeight = 60;
+  const carWidth = canvas.width * 0.075;
+  const carHeight = carWidth * 2;
 
   let carX;
   const carY = canvas.height - carHeight - 10;
@@ -233,11 +193,11 @@
   let leftPressed = false;
   let rightPressed = false;
 
-  const obstacleWidth = 20;
-  const obstacleHeight = 30;
+  const obstacleWidth = carWidth * 0.66;
+  const obstacleHeight = carHeight * 0.5;
 
-  const boneWidth = 40;
-  const boneHeight = 40;
+  const boneWidth = carWidth * 1.33;
+  const boneHeight = boneWidth;
 
   const minObstacleVerticalGap = obstacleHeight * 3;
   const minObstacleToObstacleVerticalGap = carHeight * 2;
@@ -357,7 +317,7 @@
     const now = Date.now();
     if (now - lastObstacleSpawnTime < minTimeBetweenObstacles) return;
 
-    const count = Math.random() < 0.4 ? 1 : 2; // Daha seyrek engel
+    const count = Math.random() < 0.4 ? 1 : 2;
     const lanes = [0,1,2];
     lanes.sort(() => Math.random() - 0.5);
     let selectedLanes = [];
@@ -530,12 +490,14 @@
   }
 
   function moveCar() {
+    const moveSpeed = carWidth * 0.2;
+    
     if(leftPressed) {
-      carX -= 6;
+      carX -= moveSpeed;
       if(carX < roadX) carX = roadX;
     }
     if(rightPressed) {
-      carX += 6;
+      carX += moveSpeed;
       if(carX > roadX + roadWidth - carWidth) carX = roadX + roadWidth - carWidth;
     }
   }
@@ -571,27 +533,34 @@
     if(e.key === 'ArrowLeft' || e.key === 'a') leftPressed = true;
     if(e.key === 'ArrowRight' || e.key === 'd') rightPressed = true;
   });
+  
   window.addEventListener('keyup', (e) => {
     if(e.key === 'ArrowLeft' || e.key === 'a') leftPressed = false;
     if(e.key === 'ArrowRight' || e.key === 'd') rightPressed = false;
   });
 
   // Dokunmatik kontroller
+  let touchStartX = 0;
+  
   canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
+    touchStartX = e.touches[0].clientX;
+  });
+  
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
     const touchX = e.touches[0].clientX;
-    const canvasRect = canvas.getBoundingClientRect();
-    const canvasCenter = canvasRect.left + canvasRect.width / 2;
+    const threshold = 10;
     
-    if(touchX < canvasCenter) {
+    if(touchX < touchStartX - threshold) {
       leftPressed = true;
       rightPressed = false;
-    } else {
+    } else if(touchX > touchStartX + threshold) {
       rightPressed = true;
       leftPressed = false;
     }
   });
-
+  
   canvas.addEventListener('touchend', (e) => {
     e.preventDefault();
     leftPressed = false;
@@ -603,39 +572,16 @@
     resetGame();
   });
 
-  // Canvas boyutunu ayarla
-  function resizeCanvas() {
-    if(window.innerWidth < 768) {
-      // Mobil mod
-      const maxWidth = Math.min(window.innerWidth - 40, 400);
-      const height = maxWidth * 1.5;
-      canvas.width = maxWidth;
-      canvas.height = height;
-    } else {
-      // PC mod
-      if(window.innerHeight < 700) {
-        // Dikey alan kısıtlıysa
-        const maxHeight = window.innerHeight * 0.7;
-        const width = maxHeight * 0.666;
-        canvas.width = width;
-        canvas.height = maxHeight;
-      } else {
-        // Normal PC görünümü
-        canvas.width = 400;
-        canvas.height = 600;
-      }
-    }
-    
-    // Oyunu yeniden başlat
-    if(carImg.complete) resetGame();
-  }
+  // Boyut değişikliklerini takip et
+  window.addEventListener('resize', () => {
+    setupGameSize();
+    resetGame();
+  });
 
-  window.addEventListener('resize', resizeCanvas);
+  // Oyunu başlat
   carImg.onload = () => {
-    resizeCanvas();
     resetGame();
   };
-
 </script>
 </body>
 </html>
