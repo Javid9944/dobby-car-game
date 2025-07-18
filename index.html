@@ -1,324 +1,542 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dobby Car</title>
-  <style>
-    body {
-      margin: 0;
-      background: #222;
-      font-family: Arial, sans-serif;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      flex-direction: column;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BMW Araba Oyunu</title>
+<style>
+  body {
+    margin: 0;
+    background: #222;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    color: white;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+  }
+  #container {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    position: relative;
+  }
+  #dobby-container {
+    flex-shrink: 0;
+    background: #333;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 150px;
+  }
+  #dobby-container img {
+    width: 120px;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 0 10px #555;
+  }
+  #info-box {
+    background: #444;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 12px;
+    width: 140px;
+    text-align: center;
+    font-weight: bold;
+    user-select: none;
+  }
+  #game {
+    background: #555;
+    border-radius: 10px;
+    box-shadow: 0 0 15px #000;
+    touch-action: none;
+  }
+  #message-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    color: black;
+    border-radius: 12px;
+    padding: 30px 40px;
+    box-shadow: 0 0 20px #000;
+    text-align: center;
+    display: none;
+    z-index: 20;
+    max-width: 80vw;
+  }
+  #message-box img {
+    width: 120px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+  }
+  #message-text {
+    font-weight: bold;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 10;
+  }
+  #restart-btn {
+    padding: 10px 25px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 8px;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 0 10px #007bff;
+    z-index: 10;
+    position: relative;
+  }
+  #restart-btn:hover {
+    background: #0056b3;
+  }
+  #link-container {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 0.9rem;
+    user-select: none;
+  }
+  #link-container a {
+    color: #1da1f2;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  #link-container a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 600px) {
     #container {
-      display: flex;
-      flex-direction: row;
-      gap: 20px;
-      align-items: flex-start;
+      flex-direction: column;
+      align-items: center;
     }
-    #dobby-container {
-      width: 150px;
-      background: #333;
-      border-radius: 8px;
-      padding: 10px;
-      text-align: center;
-      box-shadow: 0 0 10px #000;
+    #dobby-container, #info-box {
+      width: 120px;
+      margin-bottom: 10px;
     }
     #dobby-container img {
-      width: 120px;
-      border-radius: 10px;
+      width: 100px;
     }
-    #score-box {
-      margin-top: 20px;
-      background: #444;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 16px;
+    #game {
+      width: 320px !important;
+      height: 480px !important;
     }
-    canvas {
-      background: #555;
-      border-radius: 10px;
-      box-shadow: 0 0 15px #000;
+    #message-box img {
+      width: 100px;
     }
-    #restart-btn {
-      display: none;
-      margin-top: 20px;
-      padding: 12px 24px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 18px;
-      cursor: pointer;
-    }
-    #restart-btn:hover {
-      background: #0056b3;
-    }
-    #x-link {
-      display: none;
-      margin-top: 8px;
-      font-size: 13px;
-    }
-    #x-link a {
-      color: #ccc;
-      text-decoration: none;
-    }
-    #x-link a:hover {
-      color: #fff;
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
+  <div id="container">
+    <div id="dobby-container">
+      <img src="dobby.png" alt="Dobby" />
+      <div style="margin-top:10px; font-weight:bold;">Dobby Car</div>
+      <div id="info-box">
+        <div>Seviye: <span id="level">1</span></div>
+        <div>Score: <span id="score">0</span></div>
+      </div>
+    </div>
+    <canvas id="game" width="400" height="600"></canvas>
+  </div>
 
-<div id="container">
-  <div id="dobby-container">
-    <img src="dobby.png" alt="Dobby" />
-    <div style="margin-top: 10px; font-weight: bold;">Dobby Car</div>
-    <div id="score-box">
-      <div>Score: <span id="score">0</span></div>
-      <div>Level: <span id="level">1</span></div>
+  <div id="message-box">
+    <img id="message-img" src="" alt="Durum" />
+    <div id="message-text"></div>
+    <button id="restart-btn">Yeniden Başla</button>
+    <div style="margin-top:10px; font-size:0.85rem; color:#555;">
+      <a href="https://x.com/Cavo994" target="_blank" rel="noopener noreferrer">@Cavo994</a>
     </div>
   </div>
-  <canvas id="game" width="400" height="600"></canvas>
-</div>
 
-<button id="restart-btn">Yeniden Başla</button>
-<div id="x-link"><a href="https://x.com/Cavo994" target="_blank">@Cavo994</a></div>
+  <div id="link-container">
+    <a href="https://x.com/Cavo994" target="_blank" rel="noopener noreferrer">@Cavo994</a>
+  </div>
 
 <script>
-  const canvas = document.getElementById("game");
-  const ctx = canvas.getContext("2d");
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const restartBtn = document.getElementById('restart-btn');
+  const messageBox = document.getElementById('message-box');
+  const messageText = document.getElementById('message-text');
+  const messageImg = document.getElementById('message-img');
+  const levelText = document.getElementById('level');
+  const scoreText = document.getElementById('score');
 
   const roadWidth = 200;
   const roadX = (canvas.width - roadWidth) / 2;
+  const laneCount = 3;
+  const laneWidth = roadWidth / laneCount;
 
-  const carWidth = 50;
-  const carHeight = 100;
-  const obstacleWidth = 40;
-  const obstacleHeight = carHeight / 2;
+  const carWidth = 30;
+  const carHeight = 60;
 
-  const boneWidth = 30;
-  const boneHeight = 30;
-  const bonusWidth = 30;
-
-  let carX = canvas.width / 2 - carWidth / 2;
+  let carX;
   const carY = canvas.height - carHeight - 10;
 
   let leftPressed = false;
   let rightPressed = false;
 
+  const obstacleWidth = 20;
+  const obstacleHeight = 30;
+
+  const boneWidth = 40;
+  const boneHeight = 40;
+
+  const minObstacleVerticalGap = obstacleHeight * 3;
+  const minObstacleToObstacleVerticalGap = carHeight * 2;
+
   let obstacles = [];
   let bones = [];
   let bonuses = [];
 
+  let speed = 3;
+  const maxSpeed = 15;
   let score = 0;
   let level = 1;
-  let speed = 3;
   let gameOver = false;
+  let obstacleSpawnChance = 0.02;
 
-  let lastBonusTime = Date.now();
+  let lastObstacleSpawnTime = 0;
+  const minTimeBetweenObstacles = 1800;
 
   const carImg = new Image();
-  carImg.src = "bmw.png";
+  carImg.src = 'bmw.png';
 
   const boneImg = new Image();
-  boneImg.src = "bone.png";
+  boneImg.src = 'bone.png';
 
   const bonusImg = new Image();
-  bonusImg.src = "senti.png";
+  bonusImg.src = 'senti.png';
 
-  const winImg = new Image();
-  winImg.src = "win.png";
+  function resetGame() {
+    carX = canvas.width / 2 - carWidth / 2;
+    obstacles = [];
+    bones = [];
+    bonuses = [];
+    speed = 3;
+    score = 0;
+    level = 1;
+    obstacleSpawnChance = 0.02;
+    gameOver = false;
+    lastObstacleSpawnTime = 0;
+    updateUI();
+    messageBox.style.display = 'none';
+    requestAnimationFrame(gameLoop);
+  }
 
-  const loseImg = new Image();
-  loseImg.src = "lost.png";
+  function updateUI() {
+    levelText.textContent = level;
+    scoreText.textContent = score;
+  }
 
   function drawRoad() {
-    ctx.fillStyle = "#333";
+    ctx.fillStyle = '#333';
     ctx.fillRect(roadX, 0, roadWidth, canvas.height);
+
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([20, 20]);
+    ctx.beginPath();
+    ctx.moveTo(canvas.width/2, 0);
+    ctx.lineTo(canvas.width/2, canvas.height);
+    ctx.stroke();
+    ctx.setLineDash([]);
   }
 
   function drawCar() {
-    ctx.drawImage(carImg, carX, carY, carWidth, carHeight);
+    if (carImg.complete) {
+      ctx.drawImage(carImg, carX, carY, carWidth, carHeight);
+    } else {
+      ctx.fillStyle = 'red';
+      ctx.fillRect(carX, carY, carWidth, carHeight);
+    }
   }
 
   function drawObstacles() {
-    ctx.fillStyle = "orange";
+    ctx.fillStyle = 'orange';
     obstacles.forEach(ob => {
       ctx.fillRect(ob.x, ob.y, obstacleWidth, obstacleHeight);
     });
   }
 
   function drawBones() {
-    bones.forEach(bone => {
-      ctx.drawImage(boneImg, bone.x, bone.y, boneWidth, boneHeight);
+    bones.forEach(b => {
+      if (boneImg.complete) {
+        ctx.drawImage(boneImg, b.x, b.y, boneWidth, boneHeight);
+      } else {
+        ctx.fillStyle = 'yellow';
+        ctx.fillRect(b.x, b.y, boneWidth, boneHeight);
+      }
     });
   }
 
   function drawBonuses() {
     bonuses.forEach(b => {
-      ctx.drawImage(bonusImg, b.x, b.y, bonusWidth, bonusWidth);
+      if (bonusImg.complete) {
+        ctx.drawImage(bonusImg, b.x, b.y, boneWidth, boneHeight);
+      } else {
+        ctx.fillStyle = 'lime';
+        ctx.fillRect(b.x, b.y, boneWidth, boneHeight);
+      }
     });
   }
 
-  function drawUI() {
-    document.getElementById("score").textContent = score;
-    document.getElementById("level").textContent = level;
+  function canSpawnObstacleAt(y, lane) {
+    for (let ob of obstacles) {
+      if (Math.abs(ob.y - y) < minObstacleVerticalGap && ob.x === roadX + lane * laneWidth + (laneWidth - obstacleWidth) / 2) {
+        return false;
+      }
+    }
+
+    let sameYCount = obstacles.filter(ob => Math.abs(ob.y - y) < obstacleHeight).length;
+    if (sameYCount >= 2) return false;
+
+    return true;
   }
 
-  function updateObjects() {
-    obstacles.forEach(o => o.y += speed);
+  function spawnObstacles() {
+    if (gameOver) return;
+
+    const now = Date.now();
+    if (now - lastObstacleSpawnTime < minTimeBetweenObstacles) return;
+
+    const count = Math.random() < 0.4 ? 1 : 2; // Daha seyrek engel
+    const lanes = [0,1,2];
+    lanes.sort(() => Math.random() - 0.5);
+    let selectedLanes = [];
+
+    for(let lane of lanes) {
+      const spawnY = -obstacleHeight;
+      if(canSpawnObstacleAt(spawnY, lane)) {
+        selectedLanes.push(lane);
+        if(selectedLanes.length === count) break;
+      }
+    }
+
+    selectedLanes.forEach(lane => {
+      const x = roadX + lane * laneWidth + (laneWidth - obstacleWidth) / 2;
+      obstacles.push({x, y: -obstacleHeight});
+    });
+
+    if(selectedLanes.length > 0) {
+      lastObstacleSpawnTime = now;
+    }
+  }
+
+  function isOverlappingObstacleForItem(x, y, width, height) {
+    for(let ob of obstacles) {
+      if(
+        x < ob.x + obstacleWidth &&
+        x + width > ob.x &&
+        y < ob.y + obstacleHeight &&
+        y + height > ob.y
+      ) return true;
+    }
+    return false;
+  }
+
+  function canSpawnBoneAt(y, lane) {
+    const x = roadX + lane * laneWidth + (laneWidth - boneWidth) / 2;
+    if(isOverlappingObstacleForItem(x, y, boneWidth, boneHeight)) return false;
+
+    for(let b of bones) {
+      if(Math.abs(b.y - y) < boneHeight * 1.5 && b.x === x) return false;
+    }
+    return true;
+  }
+
+  function spawnBones() {
+    if (gameOver) return;
+    if (Math.random() > 0.01) return;
+
+    const lane = Math.floor(Math.random() * laneCount);
+    const y = -boneHeight;
+    if(canSpawnBoneAt(y, lane)) {
+      const x = roadX + lane * laneWidth + (laneWidth - boneWidth) / 2;
+      bones.push({x, y});
+    }
+  }
+
+  function isOverlappingBonusForItem(x, y, width, height) {
+    for(let b of bones) {
+      if(
+        x < b.x + boneWidth &&
+        x + width > b.x &&
+        y < b.y + boneHeight &&
+        y + height > b.y
+      ) return true;
+    }
+    for(let ob of obstacles) {
+      if(
+        x < ob.x + obstacleWidth &&
+        x + width > ob.x &&
+        y < ob.y + obstacleHeight &&
+        y + height > ob.y
+      ) return true;
+    }
+    return false;
+  }
+
+  function spawnBonuses() {
+    if (gameOver) return;
+    if (Math.random() > 0.005) return;
+
+    const lane = Math.floor(Math.random() * laneCount);
+    const y = -boneHeight;
+    const x = roadX + lane * laneWidth + (laneWidth - boneWidth) / 2;
+
+    if(!isOverlappingBonusForItem(x, y, boneWidth, boneHeight)) {
+      bonuses.push({x, y});
+    }
+  }
+
+  function updatePositions() {
+    obstacles.forEach(ob => ob.y += speed);
     bones.forEach(b => b.y += speed);
     bonuses.forEach(b => b.y += speed);
 
-    obstacles = obstacles.filter(o => o.y < canvas.height);
-    bones = bones.filter(b => b.y < canvas.height);
-    bonuses = bonuses.filter(b => b.y < canvas.height);
+    obstacles = obstacles.filter(ob => ob.y < canvas.height + obstacleHeight);
+    bones = bones.filter(b => b.y < canvas.height + boneHeight);
+    bonuses = bonuses.filter(b => b.y < canvas.height + boneHeight);
   }
 
-  function generateObstacles() {
-    if (Math.random() < 0.01 + level * 0.0015) {
-      const lanes = [0, 1, 2];
-      const count = Math.min(2, Math.floor(Math.random() * 3));
-      const selected = lanes.sort(() => 0.5 - Math.random()).slice(0, count);
-
-      selected.forEach(i => {
-        const x = roadX + i * (roadWidth / 3) + ((roadWidth / 3) - obstacleWidth) / 2;
-        if (
-          obstacles.length === 0 ||
-          canvas.height - obstacles[obstacles.length - 1].y > 
-          (level >= 10 ? carHeight : carHeight * 2)
-        ) {
-          obstacles.push({x, y: -obstacleHeight});
-        }
-      });
-    }
-  }
-
-  function generateBones() {
-    if (Math.random() < 0.01) {
-      const lanes = [0, 1, 2];
-      const lane = lanes[Math.floor(Math.random() * lanes.length)];
-      const x = roadX + lane * (roadWidth / 3) + ((roadWidth / 3) - boneWidth) / 2;
-      bones.push({x, y: -boneHeight});
-    }
-  }
-
-  function generateBonus() {
-    const now = Date.now();
-    if (now - lastBonusTime > 5000) {
-      const lane = Math.floor(Math.random() * 3);
-      const x = roadX + lane * (roadWidth / 3) + ((roadWidth / 3) - bonusWidth) / 2;
-      bonuses.push({x, y: -bonusWidth});
-      lastBonusTime = now;
-    }
+  function collisionRect(r1, r2) {
+    return !(
+      r1.x > r2.x + r2.width ||
+      r1.x + r1.width < r2.x ||
+      r1.y > r2.y + r2.height ||
+      r1.y + r1.height < r2.y
+    );
   }
 
   function checkCollisions() {
-    obstacles.forEach(ob => {
-      if (rectIntersect(carX, carY, carWidth, carHeight, ob.x, ob.y, obstacleWidth, obstacleHeight)) {
-        endGame(false);
-      }
-    });
+    const carRect = {x: carX, y: carY, width: carWidth, height: carHeight};
 
+    // Engel (obstacle) çarpışması -> game over
+    for(let ob of obstacles) {
+      const obRect = {x: ob.x, y: ob.y, width: obstacleWidth, height: obstacleHeight};
+      if(collisionRect(carRect, obRect)) {
+        gameOver = true;
+        showMessage('Kaybettiniz!', 'los.png');
+        return;
+      }
+    }
+
+    // Kemik (bone) çarpışması -> puan +1
     bones = bones.filter(b => {
-      if (rectIntersect(carX, carY, carWidth, carHeight, b.x, b.y, boneWidth, boneHeight)) {
-        score += 1;
+      const boneRect = {x: b.x, y: b.y, width: boneWidth, height: boneHeight};
+      if(collisionRect(carRect, boneRect)) {
+        score++;
+        updateLevel();
+        updateUI();
         return false;
       }
       return true;
     });
 
+    // Bonus (bonus) çarpışması -> puan +5
     bonuses = bonuses.filter(b => {
-      if (rectIntersect(carX, carY, carWidth, carHeight, b.x, b.y, bonusWidth, bonusWidth)) {
+      const bonusRect = {x: b.x, y: b.y, width: boneWidth, height: boneHeight};
+      if(collisionRect(carRect, bonusRect)) {
         score += 5;
+        updateLevel();
+        updateUI();
         return false;
       }
       return true;
     });
+  }
 
-    if (score >= level * 10 && level < 12) {
-      level++;
-      if (level >= 10) speed += 0.5;
-    }
+  function updateLevel() {
+    const newLevel = Math.floor(score / 10) + 1;
+    if(newLevel > level) {
+      level = newLevel;
 
-    if (level >= 12 && score >= 120) {
-      endGame(true);
+      // 9 ve üstü seviyelerde her levelde hız artsın
+      if(level >= 9) {
+        speed += 1;
+        if(speed > maxSpeed) speed = maxSpeed;
+      }
+
+      if(level >= 12) {
+        gameOver = true;
+        showMessage('Kazandınız!', 'win.png');
+      }
+      updateUI();
     }
   }
 
-  function rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) {
-    return !(x1 > x2 + w2 || x1 + w1 < x2 || y1 > y2 + h2 || y1 + h1 < y2);
+  function showMessage(text, imgSrc) {
+    messageText.textContent = text;
+    messageImg.src = imgSrc;
+    messageBox.style.display = 'block';
   }
 
-  function endGame(won) {
-    gameOver = true;
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    const image = won ? winImg : loseImg;
-    const text = won ? "Kazandınız!" : "Kaybettiniz";
-
-    image.onload = () => {
-      ctx.drawImage(image, canvas.width / 2 - 60, 100, 120, 120);
-      ctx.fillStyle = "white";
-      ctx.font = "30px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText(text, canvas.width / 2, 250);
-    };
-    image.src = won ? "win.png" : "lost.png";
-
-    document.getElementById("restart-btn").style.display = "block";
-    document.getElementById("x-link").style.display = "block";
+  function moveCar() {
+    if(leftPressed) {
+      carX -= 6;
+      if(carX < roadX) carX = roadX;
+    }
+    if(rightPressed) {
+      carX += 6;
+      if(carX > roadX + roadWidth - carWidth) carX = roadX + roadWidth - carWidth;
+    }
   }
 
   function gameLoop() {
-    if (gameOver) return;
+    if(gameOver) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     drawRoad();
+
+    moveCar();
+
     drawCar();
+
+    spawnObstacles();
+    spawnBones();
+    spawnBonuses();
+
+    updatePositions();
+
     drawObstacles();
     drawBones();
     drawBonuses();
-    drawUI();
 
-    updateObjects();
-    generateObstacles();
-    generateBones();
-    generateBonus();
     checkCollisions();
-
-    if (leftPressed && carX > roadX) carX -= 5;
-    if (rightPressed && carX + carWidth < roadX + roadWidth) carX += 5;
 
     requestAnimationFrame(gameLoop);
   }
 
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowLeft") leftPressed = true;
-    if (e.key === "ArrowRight") rightPressed = true;
-    if (e.key === "Enter" && gameOver) location.reload();
+  // Klavye kontrolleri
+  window.addEventListener('keydown', (e) => {
+    if(e.key === 'ArrowLeft' || e.key === 'a') leftPressed = true;
+    if(e.key === 'ArrowRight' || e.key === 'd') rightPressed = true;
+  });
+  window.addEventListener('keyup', (e) => {
+    if(e.key === 'ArrowLeft' || e.key === 'a') leftPressed = false;
+    if(e.key === 'ArrowRight' || e.key === 'd') rightPressed = false;
   });
 
-  document.addEventListener("keyup", (e) => {
-    if (e.key === "ArrowLeft") leftPressed = false;
-    if (e.key === "ArrowRight") rightPressed = false;
+  // Yeniden başlat
+  restartBtn.addEventListener('click', () => {
+    resetGame();
   });
 
-  document.getElementById("restart-btn").onclick = () => location.reload();
+  carImg.onload = () => resetGame();
 
-  window.onload = () => {
-    requestAnimationFrame(gameLoop);
-  };
 </script>
-
 </body>
 </html>
