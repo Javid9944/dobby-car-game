@@ -11,23 +11,18 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    min-height: 100vh;
     color: white;
     font-family: Arial, sans-serif;
-    overflow: hidden;
-    padding: 20px;
-    box-sizing: border-box;
+    overflow-x: hidden;
+    min-height: 100vh;
   }
-  #container {
+  #header-container {
     display: flex;
-    align-items: flex-start;
-    gap: 20px;
-    position: relative;
-    max-width: 100%;
+    justify-content: center;
+    width: 100%;
+    padding: 20px 0;
   }
   #dobby-container {
-    flex-shrink: 0;
     background: #333;
     padding: 10px;
     border-radius: 8px;
@@ -53,12 +48,17 @@
     font-weight: bold;
     user-select: none;
   }
+  #game-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 20px;
+  }
   #game {
     background: #555;
     border-radius: 10px;
     box-shadow: 0 0 15px #000;
     touch-action: none;
-    max-width: 100%;
   }
   #message-box {
     position: fixed;
@@ -104,13 +104,12 @@
     background: #0056b3;
   }
   #link-container {
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
+    margin-top: auto;
+    padding: 20px;
     color: white;
     font-size: 0.9rem;
     user-select: none;
+    text-align: center;
   }
   #link-container a {
     color: #1da1f2;
@@ -122,14 +121,8 @@
   }
 
   @media (max-width: 768px) {
-    #container {
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-    }
     #dobby-container {
       width: 120px;
-      margin-bottom: 10px;
     }
     #info-box {
       width: 100%;
@@ -141,6 +134,7 @@
     #game {
       width: 100% !important;
       height: auto !important;
+      max-width: 400px;
       aspect-ratio: 2/3;
     }
     #message-box {
@@ -153,15 +147,11 @@
   }
 
   @media (max-height: 700px) {
-    body {
-      justify-content: flex-start;
-      padding-top: 20px;
-    }
-    #container {
-      flex-direction: row;
+    #header-container {
+      padding: 10px 0;
     }
     #game {
-      height: 90vh !important;
+      height: 70vh !important;
       width: auto !important;
     }
   }
@@ -191,7 +181,7 @@
 </style>
 </head>
 <body>
-  <div id="container">
+  <div id="header-container">
     <div id="dobby-container">
       <img src="dobby.png" alt="Dobby" />
       <div style="margin-top:10px; font-weight:bold;">Dobby Car</div>
@@ -200,6 +190,9 @@
         <div>Score: <span id="score">0</span></div>
       </div>
     </div>
+  </div>
+
+  <div id="game-container">
     <canvas id="game" width="400" height="600"></canvas>
   </div>
 
@@ -612,9 +605,6 @@
 
   // Canvas boyutunu ayarla
   function resizeCanvas() {
-    const container = document.getElementById('container');
-    const dobbyContainer = document.getElementById('dobby-container');
-    
     if(window.innerWidth < 768) {
       // Mobil mod
       const maxWidth = Math.min(window.innerWidth - 40, 400);
@@ -625,7 +615,7 @@
       // PC mod
       if(window.innerHeight < 700) {
         // Dikey alan kısıtlıysa
-        const maxHeight = window.innerHeight - 40;
+        const maxHeight = window.innerHeight * 0.7;
         const width = maxHeight * 0.666;
         canvas.width = width;
         canvas.height = maxHeight;
